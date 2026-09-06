@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+
+# Env & secrets
+.env
+*.env
+!*.env.example
+
+# Test / pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 向量数据库持久化目录
+chroma_db/
+*.sqlite3
+
+# 运行时数据
+data/uploads/
+data/outputs/
+data/memory/
+
+# 评估结果
+evaluation/results/
+*.eval.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

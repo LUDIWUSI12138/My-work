@@ -1,0 +1,27 @@
+services:
+  api:
+    build: .
+    container_name: rag-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    command: uvicorn api:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+
+  ui:
+    build: .
+    container_name: rag-ui
+    depends_on:
+      - api
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE=http://api:8000
+    command: streamlit run app.py --server.port 8501 --server.address 0.0.0.0
+    restart: unless-stopped
