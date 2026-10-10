@@ -171,13 +171,13 @@ event: error       # 出错信息
 
 ---
 
-## 🔌 附带：DSH 会话回退插件
+## 🔌 相关项目：DSH 会话回退插件
 
-本仓库另外附带一个独立小工具 **`dsh-rewind`**：给 DSH（DeepSeek Harness）桌面版用的会话回退插件，
-把当前会话退回某一轮对话发起之前 —— 模型历史就地遮蔽，界面同步隐藏被回退的轮次。
+顺带一提，我还写了个小工具 **[dsh-rewind](https://github.com/LUDIWUSI12138/dsh-rewind)**：
+给 DSH（DeepSeek Harness）桌面版用的会话回退插件，把当前会话退回某一轮对话发起之前 ——
+模型历史就地遮蔽，界面同步隐藏被回退的轮次。
 
-与上面的 RAG 项目没有依赖关系，只是放在同一个仓库里。安装与使用见
-[`dsh-rewind/README.md`](dsh-rewind/README.md)。
+与上面的 RAG 项目没有依赖关系，已独立成仓库维护。
 
 ## 📄 License
 
