@@ -173,7 +173,7 @@ event: error       # 出错信息
 
 ## 🔌 相关项目：DSH 会话回退插件
 
-顺带一提，我还写了个小工具 **[dsh-rewind](https://github.com/LUDIWUSI12138/dsh-rewind)**：
+顺带一提，我还写了个小工具 **[dsh-rewind](https://github.com/LUDIWUSI12138/dsh-sqy-rewind)**：
 给 DSH（DeepSeek Harness）桌面版用的会话回退插件，把当前会话退回某一轮对话发起之前 ——
 模型历史就地遮蔽，界面同步隐藏被回退的轮次。
 
