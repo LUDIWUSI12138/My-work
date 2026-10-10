@@ -125,7 +125,7 @@ node tools/install.mjs --profile desktop             # 真装
 | 位置 | 改动 | 少了会怎样 |
 |---|---|---|
 | `<profile>/node_modules/dsh-rewind` | 指向本包的 junction | Host 半根本加载不到 |
-| `<profile>/cordis.patch.yml` | 追加一行 `- insert:` | 插件不会被注册 |
+| `<profile>/cordis.patch.yml` | 追加一行 `- insert:` | 插件不被注册（bundle 自带的 patch 一般已覆盖它，这行是保险） |
 | `<profile>/package.json` | 写入 `dependencies` 和 `dsh.profile.bundles` | **浏览器半不会进前端 bundle**：按钮缺失，或只在个别会话里出现 |
 
 第三项最容易漏，也是「按钮时有时无」的根因：只加 `cordis.patch.yml` 的 insert 行能加载 Host 半，
