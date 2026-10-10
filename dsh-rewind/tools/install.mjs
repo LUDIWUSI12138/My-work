@@ -45,6 +45,27 @@ console.log(`  source  : ${SRC}`)
 console.log(`  profile : ${profile}`)
 console.log(`  mode    : ${uninstall ? 'uninstall' : dryRun ? 'dry-run' : 'install'}`)
 
+const manifestFile = join(profile, 'package.json')
+let manifest
+try {
+  // A leading BOM is legal on disk and fatal to JSON.parse, and a profile manifest
+  // that was touched by an editor rather than by DSH can carry one.
+  manifest = JSON.parse(readFileSync(manifestFile, 'utf8').replace(/^\uFEFF/, ''))
+} catch (error) {
+  fail(`cannot parse '${manifestFile}': ${error.message}`)
+}
+
+// Both manifest entries are required for the plugin to load at all:
+//   * `dependencies` lets the profile resolve the package at all
+//   * `dsh.profile.bundles` makes the web client build the browser half into EVERY
+//     conversation. A `cordis.patch.yml` insert row on its own loads the Host half
+//     but leaves the browser half out, which shows up as a rewind button that is
+//     missing, or that only appears in some conversations and not others.
+const depSpec = `link:${SRC.replace(/\\/g, '/')}`
+const depPresent = manifest.dependencies !== undefined && manifest.dependencies[PKG] !== undefined
+const bundleList = manifest.dsh?.profile?.bundles
+const bundlePresent = Array.isArray(bundleList) && bundleList.includes(PKG)
+
 const patchText = readFileSync(patchFile, 'utf8')
 // Matched as `id: <row>` plus the package name, never as `<row>:`. The row spans
 // three lines, so a search for `rewind:` would match nothing and a re-run would
@@ -66,6 +87,8 @@ if (existsSync(linkedManifest)) {
 
 console.log(`  link    : ${linkState}`)
 console.log(`  patch   : ${rowPresent ? 'row already present' : 'row will be appended'}`)
+console.log(`  dep     : ${depPresent ? 'already registered' : `will be set to ${depSpec}`}`)
+console.log(`  bundle  : ${bundlePresent ? 'already registered' : 'will be added to dsh.profile.bundles'}`)
 
 if (dryRun) {
   console.log('\nDRY RUN: nothing written.')
@@ -92,6 +115,18 @@ if (uninstall) {
     copyFileSync(patchFile, join(backupDir, 'cordis.patch.yml'))
     writeFileSync(patchFile, next, 'utf8')
     console.log(`  removed the patch row (backup: ${backupDir})`)
+  }
+  if (depPresent || bundlePresent) {
+    const stamp = new Date().toISOString().replace(/[:T]/g, '-').replace(/\..+$/, '')
+    const backupDir = join(dshHome, `.dsh-rollback-${PKG}-${stamp}`)
+    mkdirSync(backupDir, { recursive: true })
+    copyFileSync(manifestFile, join(backupDir, 'package.json'))
+    if (manifest.dependencies !== undefined) delete manifest.dependencies[PKG]
+    if (Array.isArray(bundleList)) {
+      manifest.dsh.profile.bundles = bundleList.filter((name) => name !== PKG)
+    }
+    writeFileSync(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
+    console.log(`  removed the manifest entries (backup: ${backupDir})`)
   }
   console.log('\nDONE. Restart DSH for the row to disappear.')
   process.exit(0)
@@ -127,6 +162,22 @@ if (rowPresent) {
   const row = `${lead}${eol}- insert:${eol}    - id: ${ROW_ID}${eol}      name: ${PKG}${eol}`
   appendFileSync(patchFile, row, 'utf8')
   console.log('  appended the insert row')
+}
+
+// --- 3. the profile manifest -------------------------------------------------
+if (depPresent && bundlePresent) {
+  console.log('  manifest: already registered; leaving it alone')
+} else {
+  copyFileSync(manifestFile, join(backupDir, 'package.json'))
+  manifest.dependencies = manifest.dependencies ?? {}
+  manifest.dependencies[PKG] = depSpec
+  manifest.dsh = manifest.dsh ?? {}
+  manifest.dsh.profile = manifest.dsh.profile ?? {}
+  const bundles = Array.isArray(manifest.dsh.profile.bundles) ? manifest.dsh.profile.bundles : []
+  if (!bundles.includes(PKG)) bundles.push(PKG)
+  manifest.dsh.profile.bundles = bundles
+  writeFileSync(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
+  console.log('  manifest: registered the dependency and the bundle')
 }
 
 console.log('')

@@ -169,6 +169,16 @@ event: error       # 出错信息
 - 嵌入默认使用本地模型，无需额外密钥；如需调用远端 Embedding，可在 `.env` 把 `EMBEDDING_PROVIDER` 改为 `openai_compatible` 并配置对应的 `EMBEDDING_BASE_URL` / `EMBEDDING_API_KEY`。
 - 生产部署建议：将 `chroma_db/` 与 `data/uploads/` 挂载到持久化卷，并妥善保管 `.env`。
 
+---
+
+## 🔌 附带：DSH 会话回退插件
+
+本仓库另外附带一个独立小工具 **`dsh-rewind`**：给 DSH（DeepSeek Harness）桌面版用的会话回退插件，
+把当前会话退回某一轮对话发起之前 —— 模型历史就地遮蔽，界面同步隐藏被回退的轮次。
+
+与上面的 RAG 项目没有依赖关系，只是放在同一个仓库里。安装与使用见
+[`dsh-rewind/README.md`](dsh-rewind/README.md)。
+
 ## 📄 License
 
 MIT

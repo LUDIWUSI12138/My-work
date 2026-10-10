@@ -100,23 +100,59 @@ DSH 的 transcript 是**故意**用 append 来源的事件拼的。官方在
 
 ## 安装
 
+**前置条件**
+
+| 项 | 要求 |
+|---|---|
+| DSH | 桌面版，实测 `0.2.0-rc.2` |
+| Node | 18+（安装器是 ESM） |
+| 平台 | Windows 实测通过。安装器用 junction，POSIX 上 Node 会退化成普通符号链接，未实测 |
+
+**步骤**
+
 ```sh
+git clone https://github.com/LUDIWUSI12138/My-work.git
+cd My-work/dsh-rewind
+
 node tools/install.mjs --profile desktop --dry-run   # 先看它要做什么
 node tools/install.mjs --profile desktop             # 真装
 ```
 
-两件事：在 `<profile>/node_modules/` 建一个指向本包的 junction，往 `<profile>/cordis.patch.yml`
-追加一行 `- insert:`。`cordis.patch.yml` 是无 BOM 的 UTF-8 且别行带中文，所以用 Node 读写而不是
-PowerShell。改之前会在 `~/.dsh/.dsh-rollback-dsh-rewind-<时间戳>/` 备份。
+`--profile` 默认取 `$DSH_PROFILE`，没有就用 `desktop`；`DSH_HOME` 默认 `~/.dsh`。
+
+**它改三处**（改之前全部备份到 `~/.dsh/.dsh-rollback-dsh-rewind-<时间戳>/`）：
+
+| 位置 | 改动 | 少了会怎样 |
+|---|---|---|
+| `<profile>/node_modules/dsh-rewind` | 指向本包的 junction | Host 半根本加载不到 |
+| `<profile>/cordis.patch.yml` | 追加一行 `- insert:` | 插件不会被注册 |
+| `<profile>/package.json` | 写入 `dependencies` 和 `dsh.profile.bundles` | **浏览器半不会进前端 bundle**：按钮缺失，或只在个别会话里出现 |
+
+第三项最容易漏，也是「按钮时有时无」的根因：只加 `cordis.patch.yml` 的 insert 行能加载 Host 半，
+但浏览器半不会被打进前端 bundle，于是界面这一半根本没运行。
+`cordis.patch.yml` 是无 BOM 的 UTF-8 且别行带中文，所以安装器用 Node 读写而不是 PowerShell。
 
 装完**必须重启 DSH**：Host 半（`entry.js`）靠热加载换不掉，运行中的进程持有旧模块。
 只改了浏览器半（`lib/client.js`）的话，刷新页面就够。
 
-卸载：
+**验证装好了**
+
+重启后随便打开一个会话，**每条你发出的消息下面**应该和「复制」并排多一个回退图标。
+没有的话跑一次干跑，看最后两行：
+
+```sh
+node tools/install.mjs --profile desktop --dry-run
+```
+
+`dep` 和 `bundle` 都应该是 `already registered`。
+
+**卸载**
 
 ```sh
 node tools/install.mjs --profile desktop --uninstall
 ```
+
+三处改动都会撤销，`package.json` 的其它字段原样保留。
 
 ## 改代码之后
 
